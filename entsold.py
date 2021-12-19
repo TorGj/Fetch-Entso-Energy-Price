@@ -1,15 +1,11 @@
 import datetime as dt
 import matplotlib.pyplot as plt
 from matplotlib.pyplot import figure
-import PySimpleGUI as sg
 import PySimpleGUI as psg
-import numpy as np
 import requests
 from PIL import Image
 import json       # Eksporterings ting
-import _tkinter
 import config
-
 from twython import Twython, TwythonError
 
 
