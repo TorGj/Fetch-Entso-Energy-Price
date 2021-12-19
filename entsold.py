@@ -42,11 +42,8 @@ def App_GUI():
            [psg.Button('Vis priser', font=('Times New Roman',14)), psg.Button('Glem det', font=('Times New Roman',14))]]
     #Define Window
     win =psg.Window('Hent strømpriser',layout)
-    #Read  values entered by user
     e,v=win.read()
-    #close first window
     win.close()
-    #access all the values and if selected add them to a string
     u_a = []
     for val in v:
       if win.find_element(val).get()==True:
@@ -54,26 +51,17 @@ def App_GUI():
     u_a.append(v[0])
     return u_a
 
+
 u_a = App_GUI()
-
-
 firstdate = getDateRangeFromWeek(u_a[1],u_a[2])
 
 
-#naa = dt.datetime.now().strftime("%Y%m%d")
-
-
-#omraade = ['10YNO-1--------2', '10YNO-2--------T', '10YNO-3--------J', '10YNO-4--------9']
-#s = int(values[0])
-#place = omraade[s-1]
 # create a Twython object by passing the necessary secret passwords
 tokenkey = str(Twython(config.api_key)).replace('<Twython: ','').replace('>','')
 
-
 place = u_a[0]
 
-print('Området du har valgt bruker koden:', place)
-
+#naa = dt.datetime.now().strftime("%Y%m%d")
 # Fetch price of EUR in NOK
 def getentsoe(day):
     url_entso = 'https://transparency.entsoe.eu/api?documentType=A44&in_Domain=' + place + '&out_Domain=' + place + '&periodStart=' + day + '0000&periodEnd=' + day + '2300&securityToken=' + tokenkey
