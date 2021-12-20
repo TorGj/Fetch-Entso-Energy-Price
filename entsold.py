@@ -111,6 +111,7 @@ def bygg_data(euro,epris):
 
 
 def plotter(xer, yer, m, p_max):
+    d = ['Mandag', 'Tirsdag', 'Onsdag', 'Torsdag', 'Fredag', 'Lørdag', 'Søndag']
     global testbilde
     # Draw first subplot using plt.subplot
     #          row, col, pos.aktuell
@@ -120,7 +121,7 @@ def plotter(xer, yer, m, p_max):
     plt.bar(xer, yer, color='green')
     plt.yscale('linear')  # Defines log/linear scale
     plt.xlabel(dato[m])
-    plt.title("Priser i NOK",
+    plt.title(str(d[m]),
               fontsize='13',
               backgroundcolor='navy',
               color='white')
@@ -142,6 +143,7 @@ font = {'family': 'Times New Roman',
         'weight': 'bold',
         'size': 12}
 plt.rc('font', **font)
+plt.suptitle('Strømprisene i perioden: ' + str(dato[0]) + ' - ' + str(dato[6]))
 # testbilde = Image.open('entso.png')
 # Make one plot pr day
 for m in range(0, len(x)):
