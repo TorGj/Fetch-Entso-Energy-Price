@@ -7,7 +7,7 @@ from PIL import Image
 import json       # Eksporterings ting
 import config
 from twython import Twython, TwythonError
-
+import os
 
 x = []
 y = []
@@ -79,8 +79,17 @@ def geteurnok():
 
 
 def les_fil(yyyymmdd):
+    min_fil = open('%s.txt' % yyyymmdd, 'r')
+    innhold = min_fil.read()
     min_fil.close()
+    print('Data for', yyyymmdd, 'var på lager :-D bruker disse')
+    return innhold
 
+def fil_eksisterer(yyyymmdd):
+    if (os.path.isfile('%s.txt' % yyyymmdd))==True:
+        return les_fil(yyyymmdd)
+    else:
+        return getentsoe(yyyymmdd)
 
 def skriv_fil(yyyymmdd, data):
     # Skriver til en fil til, men med et mer standard format...
@@ -134,7 +143,8 @@ for n in range(0, 7):
     # print('n',n)
     day = str(firstdate[n])
     print('Henter priser for dato:', day)
-    dagens_priser = getentsoe(day)
+    dagens_priser = fil_eksisterer(day) # sjekk om filer finnes, i såfall bruk dem.. Sjekk_om_fil(day)
+    #print('Fikk tak i dagens_priser', dagens_priser)
     bygg_data(eur_rate, dagens_priser)
     dato.append(day)
 # Make canvas with settings
