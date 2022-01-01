@@ -17,6 +17,7 @@ import os
 firstdate = []
 x = []
 y = []
+dato = []
 p_max = 0
 continious = True
 
@@ -51,7 +52,6 @@ def getDateRangeFrom_Today():
 u_a = layout1.App_GUI_B()
 
 def decide_out():
-    days =[]
     global continious
     global firstdate
     if int(u_a[1]) > 0:
@@ -67,25 +67,21 @@ def decide_out():
         firstdate = getDateRangeFromWeek(u_a[3], u_a[0])
         continious = False
 
-    #return getDateRangeFromWeek(u_a[3], u_a[0])
-
 print(u_a)
 decide_out()
-#print(firstdate)
 
 tokenkey = str(Twython(config.api_key)).replace('<Twython: ','').replace('>','')
 place = u_a[2]  # Region code
 
-#naa = dt.datetime.now().strftime("%Y%m%d")
-# Fetch price of EUR in NOK
-def getentsoe(day, s):
+
+def getentsoe(day, s):      # Requests response form Entso API
     url_entso = 'https://transparency.entsoe.eu/api?documentType=A44&in_Domain=' + place + '&out_Domain=' + place + '&periodStart=' + day + '0000&periodEnd=' + day + '2300&securityToken=' + tokenkey
     ele = str(requests.Session().get(url=url_entso).text)
     klipp = ele.split("<Period>")[1].split("</Period>")[0]
     skriv_fil(day, klipp, s)
     return klipp
 
-def geteurnok():
+def geteurnok():            # Fetch price of EUR in NOK
     url_nb = 'https://data.norges-bank.no/api/data/EXR/M.EUR.NOK.SP?lastNObservations=1'
     eurnok = str(requests.Session().get(url=url_nb).text)
     outeur = eurnok.split('OBS_VALUE="')[1].split('"/></S')[0]
@@ -96,7 +92,7 @@ def les_fil(yyyymmdd, s):
     yyyymmdds = yyyymmdd+s
     min_fil = open('tgdata/%s.txt' % yyyymmdds, 'r')
     innhold = min_fil.read()
-    min_fil.close()
+    min_fil.close()     # Close file to allow other to access file
     print('Data for', yyyymmdd, s, 'var på lager :-D bruker disse')
     return innhold
 
@@ -112,32 +108,31 @@ def skriv_fil(yyyymmdd, data, s):
     # Skriver til en fil til, men med et mer standard format...
     with open('tgdata/%s.txt' % yyyymmdds, 'w') as filehandle:
         json.dump(data, filehandle)
+    # 'with' construct --> you won't have to worry about closing the file.
 
 def bygg_data(euro, epris):
     global p_max
     # Create list of NOK prices in p and a list of hours of day in t
     t = []
     p = []
-    i = 1
+    i = 1   # The data has a lot of rubbish around runs through each days dataset.
     while i < 25:
         timenr = epris.split("<position>" + str(i))[1].split("</price.amount>")[0]
         timepris = float(timenr.split("<price.amount>")[1].split("</price.amount>")[0])
         p_vat = round(timepris * 1.25 * euro / 1000, 2)
-        p.append(p_vat)  # · 1.25  ... VAT
+        p.append(p_vat)  # · 1.25 = 25% VAT
         t.append(i)
         if p_vat > p_max:
             p_max = p_vat
         i = i + 1
     # x and y is arrays of arrays of matching time and price
-    # print(p)
     x.append(t)
-    y.append(p)
-    # Create one plot for one day
+    y.append(p)     # All prices for first day in first instance
 
 def plot_many_days(xer, yer, weeknr, p_max):
     cx = []
     a = 1
-    for i in xer:
+    for i in xer:   # Just making a list for x-values 1 pr hour
         cx.append(a)
         a = a+1
 
@@ -155,11 +150,12 @@ def plot_one_day(xer, yer, m, p_max):
     #          row, col, pos.aktuell
     plt.subplot(1, len(x), m + 1)
     # plt.imshow(testbilde, zorder=1)
-    plt.ylim(0, p_max)  # Max 250 øre på yakse
+    plt.ylim(0, p_max)  # Max "høyeste pris i datasettet" øre på yakse
     plt.bar(xer, yer, color='green')
     plt.yscale('linear')  # Defines log/linear scale
-    plt.xlabel(dato[m])
-    plt.title(str(d[m]),
+    plt.xlabel(dato[m])   # Dato på formen: yyyymmdd
+    daynr = dt.datetime(year=int(dato[m][0:4]), month=int(dato[m][4:6]), day=int(dato[m][6:8])).weekday()
+    plt.title(str(d[daynr]),
               fontsize='14',
               backgroundcolor='khaki',
               color='blue')
@@ -167,7 +163,7 @@ def plot_one_day(xer, yer, m, p_max):
     # title dag: str(d[m]
 
 eur_rate = geteurnok()
-dato = []
+
 
 def what_area(place):  # Returns place name according to region code
     area = ['Oslo', 'Arendal', 'Ålesund', 'Narvik', 'Bergen']
@@ -184,11 +180,10 @@ def what_area(place):  # Returns place name according to region code
 
 region = what_area(place)
 
-
+print('Antall dager: ', len(firstdate))
 for n in range(0, len(firstdate)):
-    print('Antall dager: ', len(firstdate))
     day = str(firstdate[n])
-    print('Henter priser for ' + region + ' dato:', day)
+    print('Henter priser for ' + region + ' dato:', day, end=". ")
     dagens_priser = fil_eksisterer(day, region) # sjekk om filer finnes, i såfall bruk dem.. Sjekk_om_fil(day)
     bygg_data(eur_rate, dagens_priser)
     dato.append(day)
@@ -209,7 +204,7 @@ def seperate_days():
         plot_one_day(x[m], y[m], m, p_max)
 
 def continious_days():
-    plot_many_days(flatten(x), flatten(y), 1, p_max)
+    plot_many_days(flatten(x), flatten(y), 1, p_max)    # 1 is not used...
 
 def flatten(t):
     return [item for sublist in t for item in sublist]
