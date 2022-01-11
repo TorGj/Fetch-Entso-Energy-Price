@@ -93,14 +93,15 @@ def les_fil(yyyymmdd, s):
     min_fil = open('tgdata/%s.txt' % yyyymmdds, 'r')
     innhold = min_fil.read()
     min_fil.close()     # Close file to allow other to access file
-    print('Data for', yyyymmdd, s, 'var på lager :-D bruker disse')
     return innhold
 
 def fil_eksisterer(yyyymmdd, s):
     yyyymmdds = yyyymmdd + s
     if (os.path.isfile('tgdata/%s.txt' % yyyymmdds))==True:
+        print('Finnes lokalt.')
         return les_fil(yyyymmdd,s)
     else:
+        print('Må hente fra Entso-E')
         return getentsoe(yyyymmdd, s)
 
 def skriv_fil(yyyymmdd, data, s):
