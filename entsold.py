@@ -43,10 +43,7 @@ def getDateRangeFrom_Today():
     d.append((dt.datetime.today() + dt.timedelta(days=-2)).strftime("%Y%m%d"))
     d.append((dt.datetime.today() + dt.timedelta(days=-1)).strftime("%Y%m%d"))
     d.append(dt.datetime.today().strftime("%Y%m%d"))
-    try:
-        d.append((dt.datetime.today() + dt.timedelta(days=1)).strftime("%Y%m%d"))
-    except:
-        print('Morgendagens priser har ikke kommet enda')
+    d.append((dt.datetime.today() + dt.timedelta(days=1)).strftime("%Y%m%d"))
     return d
 
 u_a = layout1.App_GUI_B()
@@ -75,10 +72,14 @@ place = u_a[2]  # Region code
 
 
 def getentsoe(day, s):      # Requests response form Entso API
-    url_entso = 'https://transparency.entsoe.eu/api?documentType=A44&in_Domain=' + place + '&out_Domain=' + place + '&periodStart=' + day + '0000&periodEnd=' + day + '2300&securityToken=' + tokenkey
-    ele = str(requests.Session().get(url=url_entso).text)
-    klipp = ele.split("<Period>")[1].split("</Period>")[0]
-    skriv_fil(day, klipp, s)
+    try:
+        url_entso = 'https://transparency.entsoe.eu/api?documentType=A44&in_Domain=' + place + '&out_Domain=' + place + '&periodStart=' + day + '0000&periodEnd=' + day + '2300&securityToken=' + tokenkey
+        ele = str(requests.Session().get(url=url_entso).text)
+        klipp = ele.split("<Period>")[1].split("</Period>")[0]
+        skriv_fil(day, klipp, s)
+    except:
+        print('Prisene for', day,'har ikke kommet enda')
+        klipp = 'nan'
     return klipp
 
 def geteurnok():            # Fetch price of EUR in NOK
@@ -118,15 +119,19 @@ def bygg_data(euro, epris):
     p = []
     i = 1   # The data has a lot of rubbish around runs through each days dataset.
     while i < 25:
-        timenr = epris.split("<position>" + str(i))[1].split("</price.amount>")[0]
-        timepris = float(timenr.split("<price.amount>")[1].split("</price.amount>")[0])
-        p_vat = round(timepris * 1.25 * euro / 1000, 2)
-        p.append(p_vat)  # · 1.25 = 25% VAT
-        t.append(i)
-        if p_vat > p_max:
-            p_max = p_vat
+        try:
+            timenr = epris.split("<position>" + str(i))[1].split("</price.amount>")[0]
+            timepris = float(timenr.split("<price.amount>")[1].split("</price.amount>")[0])
+            p_vat = round(timepris * 1.25 * euro / 1000, 2)
+            p.append(p_vat)  # · 1.25 = 25% VAT
+            t.append(i)
+            if p_vat > p_max:
+                p_max = p_vat
+        except:
+            print(i, end=' ')
         i = i + 1
     # x and y is arrays of arrays of matching time and price
+    print('')
     x.append(t)
     y.append(p)     # All prices for first day in first instance
 
